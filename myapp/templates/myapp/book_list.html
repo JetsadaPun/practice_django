@@ -1,87 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Store</title>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --bg: #f8fafc;
-            --text: #1e293b;
-        }
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 2rem;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        h1 {
-            color: var(--primary);
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        .book-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-        .book-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            transition: transform 0.2s;
-        }
-        .book-card:hover {
-            transform: translateY(-5px);
-        }
-        .book-title {
-            font-size: 1.25rem;
-            font-weight: bold;
-            margin: 0 0 0.5rem 0;
-        }
-        .book-author {
-            color: #64748b;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-        .book-price {
-            font-weight: bold;
-            color: var(--primary);
-            font-size: 1.1rem;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 4rem;
-            background: white;
-            border-radius: 12px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Welcome to My Book Store</h1>
-        
-        <div class="book-grid">
-            {% for book in books %}
-                <div class="book-card">
-                    <h2 class="book-title">{{ book.title }}</h2>
-                    <p class="book-author">by {{ book.author }}</p>
-                    <p>{{ book.description|truncatewords:20 }}</p>
-                    <div class="book-price">${{ book.price }}</div>
-                </div>
-            {% empty %}
-                <div class="empty-state">
-                    <p>No books available yet. Add some in the admin panel!</p>
-                </div>
-            {% endfor %}
-        </div>
+{% extends 'users/base.html' %}
+
+{% block title %}Welcome to My Book Store{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary">Welcome to My Book Store</h1>
+        <p class="lead text-muted">Find your next great read today</p>
     </div>
-</body>
-</html>
+    
+    <div class="row g-4">
+        {% for book in books %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm hover-effect">
+                    <div class="card-body p-4">
+                        <h5 class="card-title fw-bold mb-1">{{ book.title }}</h5>
+                        <h6 class="card-subtitle mb-3 text-muted">by {{ book.author }}</h6>
+                        <p class="card-text text-secondary mb-4">
+                            {{ book.description|truncatewords:20 }}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <span class="h5 mb-0 fw-bold text-primary">${{ book.price }}</span>
+                            <a href="#" class="btn btn-outline-primary btn-sm rounded-pill px-3">View Detail</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <div class="card border-0 shadow-sm p-5">
+                    <p class="h4 text-muted mb-0">No books available yet. Add some in the admin panel!</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    /* เพิ่ม micro-interaction เล็กน้อยเพื่อให้ดู premium */
+    .hover-effect {
+        transition: all 0.3s ease;
+    }
+    .hover-effect:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important;
+    }
+</style>
+{% endblock %}
