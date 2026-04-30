@@ -1,0 +1,72 @@
+{% extends 'users/base.html' %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- ด้านซ้าย: ข้อมูลสรุป -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm text-center p-4 mb-4">
+                <div class="mb-3">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                        <span class="display-4 fw-bold">{{ user.username|first|upper }}</span>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-1">{{ user.username }}</h4>
+                <p class="text-muted small">{{ user.email }}</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary rounded-pill">Edit Profile</button>
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill">Change Password</button>
+                </div>
+            </div>
+            <!-- สถิติเบื้องต้น -->
+            <div class="card border-0 shadow-sm p-3">
+                <h6 class="fw-bold text-muted mb-3 text-uppercase small">Activities</h6>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Joined</span>
+                    <span class="fw-bold">{{ user.date_joined|date:"M Y" }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Last Login</span>
+                    <span class="fw-bold">{{ user.last_login|timesince }} ago</span>
+                </div>
+            </div>
+        </div>
+        <!-- ด้านขวา: ข้อมูลรายละเอียด -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm p-4 mb-4">
+                <h5 class="fw-bold mb-4">Account Information</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="text-muted small">Username</label>
+                        <p class="h6 border-bottom pb-2">{{ user.username }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">Email Address</label>
+                        <p class="h6 border-bottom pb-2">{{ user.email|default:"Not provided" }}</p>
+                    </div>
+                    
+                    <!-- ข้อมูลจาก Profile Model (ถ้ามี) -->
+                    <div class="col-md-6">
+                        <label class="text-muted small">Full Name</label>
+                        <p class="h6 border-bottom pb-2">{{ user.profile.full_name|default:"Not provided" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">Phone Number</label>
+                        <p class="h6 border-bottom pb-2">{{ user.profile.phone|default:"Not provided" }}</p>
+                    </div>
+                </div>
+            </div>
+            <!-- ส่วนเสริม: รายการที่ชอบล่าสุด (ตัวอย่าง) -->
+            <div class="card border-0 shadow-sm p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Recent Wishlist</h5>
+                    <a href="{% url 'view_wishlist' %}" class="text-primary text-decoration-none small">View All</a>
+                </div>
+                <p class="text-muted text-center py-4">Your recent favorite books will appear here.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
