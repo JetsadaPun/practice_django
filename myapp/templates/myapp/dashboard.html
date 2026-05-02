@@ -1,121 +1,100 @@
 {% extends 'users/base.html' %}
-
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-5">
-        <h1 class="display-5 fw-bold text-dark">Admin Dashboard</h1>
-        <div class="text-muted">Last updated: {% now "F d, Y H:i" %}</div>
+<div class="container-fluid px-4 py-3">
+    <!-- Header แบบกระชับ -->
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">Admin Overview</h2>
+            <p class="text-muted small mb-0">Insights & Store Performance</p>
+        </div>
     </div>
 
-    <!-- Stats Overview -->
-    <div class="row g-4 mb-5">
+    <!-- Stats Row (เล็กลง) -->
+    <div class="row g-3 mb-4">
+        {% for label, val, color, icon in stats %}
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-4 h-100 bg-primary text-white">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="bg-white bg-opacity-25 rounded-circle p-3 me-3">
-                        <i class="bi bi-currency-dollar h3 mb-0"></i>
+            <div class="card border-0 shadow-sm p-3 bg-{{ color }} text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="small opacity-75 text-uppercase">{{ label }}</div>
+                        <h3 class="fw-bold mb-0">{{ val }}</h3>
                     </div>
-                    <h6 class="mb-0 text-uppercase small">Total Revenue</h6>
+                    <i class="bi bi-{{ icon }} opacity-50 display-6"></i>
                 </div>
-                <h2 class="display-6 fw-bold mb-0">${{ total_sales|floatformat:2 }}</h2>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-4 h-100 bg-success text-white">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="bg-white bg-opacity-25 rounded-circle p-3 me-3">
-                        <i class="bi bi-bag-check h3 mb-0"></i>
-                    </div>
-                    <h6 class="mb-0 text-uppercase small">Total Orders</h6>
-                </div>
-                <h2 class="display-6 fw-bold mb-0">{{ total_orders }}</h2>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-4 h-100 bg-info text-white">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="bg-white bg-opacity-25 rounded-circle p-3 me-3">
-                        <i class="bi bi-eye h3 mb-0"></i>
-                    </div>
-                    <h6 class="mb-0 text-uppercase small">Total Views</h6>
-                </div>
-                <h2 class="display-6 fw-bold mb-0">{{ total_views }}</h2>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 
     <div class="row g-4">
-        <!-- Top Viewed Books -->
-        <div class="col-lg-8">
+        <!-- ฝั่งซ้าย: กราฟแท่ง (ปรับขนาดให้พอดี) -->
+        <div class="col-lg-6">
             <div class="card border-0 shadow-sm p-4 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold mb-0">Top Viewed Books</h5>
-                    <span class="badge bg-light text-dark">Real-time stats</span>
+                <h6 class="fw-bold mb-4"><i class="bi bi-bar-chart-line me-2"></i>Sales by Category</h6>
+                <div style="position: relative; height:300px;">
+                    <canvas id="categoryChart"></canvas>
                 </div>
+            </div>
+        </div>
+
+        <!-- ฝั่งขวา: ตารางหนังสือยอดนิยม -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h6 class="fw-bold mb-4"><i class="bi bi-star me-2"></i>Top Viewed Books</h6>
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="text-muted small text-uppercase">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead class="text-muted small">
                             <tr>
-                                <th>Book Title</th>
-                                <th>Price</th>
+                                <th>Book</th>
                                 <th class="text-center">Views</th>
-                                <th>Popularity</th>
+                                <th>Trend</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for book in top_books %}
-                                <tr>
-                                    <td class="py-3">
-                                        <div class="fw-bold text-dark">{{ book.title }}</div>
-                                        <small class="text-muted">{{ book.author }}</small>
-                                    </td>
-                                    <td>${{ book.price }}</td>
-                                    <td class="text-center fw-bold">{{ book.view_count }}</td>
-                                    <td style="width: 150px;">
-                                        <div class="progress" style="height: 6px;">
-                                            <div class="progress-bar bg-primary" role="progressbar" 
-                                                 style="width: {% widthratio book.view_count total_views 100 %}%"></div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">No data available</td>
-                                </tr>
+                            <tr>
+                                <td>
+                                    <div class="fw-bold small">{{ book.title|truncatechars:20 }}</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">{{ book.author }}</div>
+                                </td>
+                                <td class="text-center small">{{ book.view_count }}</td>
+                                <td style="width: 80px;">
+                                    <div class="progress" style="height: 4px;">
+                                        <div class="progress-bar bg-primary" style="width: {% widthratio book.view_count total_views 100 %}%"></div>
+                                    </div>
+                                </td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-
-        <!-- Quick Actions -->
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm p-4 mb-4">
-                <h5 class="fw-bold mb-4">Quick Actions</h5>
-                <div class="d-grid gap-2">
-                    <a href="/admin/myapp/book/add/" class="btn btn-outline-primary text-start p-3 rounded-3">
-                        <i class="bi bi-plus-circle me-2"></i> Add New Book
-                    </a>
-                    <a href="/admin/myapp/order/" class="btn btn-outline-dark text-start p-3 rounded-3">
-                        <i class="bi bi-list-check me-2"></i> Manage Orders
-                    </a>
-                    <a href="/admin/auth/user/" class="btn btn-outline-dark text-start p-3 rounded-3">
-                        <i class="bi bi-people me-2"></i> User Management
-                    </a>
-                </div>
-            </div>
-
-            <div class="card border-0 shadow-sm p-4 bg-light text-center">
-                <h6 class="fw-bold mb-2">Need Help?</h6>
-                <p class="small text-muted mb-0">Check the official Django documentation for advanced reporting tools.</p>
-            </div>
-        </div>
     </div>
 </div>
 
-<!-- Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<!-- Chart.js Setup (ปรับให้รองรับ Responsive) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('categoryChart');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ category_labels|safe }},
+            datasets: [{
+                label: 'Sold',
+                data: {{ category_values|safe }},
+                backgroundColor: '#0d6efd',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+</script>
 {% endblock %}

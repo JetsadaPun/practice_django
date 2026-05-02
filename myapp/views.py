@@ -1,9 +1,13 @@
+from django.http import JsonResponse
 from myapp.models import Order
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Book, Cart, CartItem, Wishlist
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Sum
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank, TrigramSimilarity
+from django.db.models import Q
+from .models import Book
 
 def book_list(request):
     books = Book.objects.all()
@@ -62,10 +66,45 @@ def admin_dashboard(request):
     total_views = Book.objects.aggregate(Sum('view_count'))['view_count__sum'] or 0
     top_books = Book.objects.order_by('-view_count')[:5] # หนังสือที่ยอดวิวสูงสุด 5 อันดับ
     
+    # ดึงยอดขายแยกตามหมวดหมู่
+    from .models import OrderItem
+    category_data = OrderItem.objects.values('book__category__name').annotate(
+        total_sold=Sum('quantity')
+    ).order_by('-total_sold')
+    
+    category_labels = [item['book__category__name'] or 'Uncategorized' for item in category_data]
+    category_values = [item['total_sold'] for item in category_data]
+    
     context = {
         'total_sales': total_sales,
         'total_orders': total_orders,
         'total_views': total_views,
         'top_books': top_books,
+        'category_labels': category_labels,
+        'category_values': category_values,
     }
     return render(request, 'myapp/dashboard.html', context)
+
+def complex_search_api(request):
+    query_text = request.GET.get('q', '')
+    
+    if query_text:
+        # 1. กำหนดความสำคัญ (Weight)
+        vector = SearchVector('title', weight='A') + SearchVector('description', weight='B')
+        query = SearchQuery(query_text)
+        
+        # 2. ค้นหาและจัดอันดับ
+        results = Book.objects.annotate(
+            rank=SearchRank(vector, query),
+            similarity=TrigramSimilarity('title', query_text)
+        ).filter(
+            Q(rank__gte=0.1) | Q(similarity__gt=0.2)
+        ).order_by('-rank', '-similarity')
+    else:
+        results = Book.objects.none() # ถ้าไม่มีคำค้นหา ไม่ต้องโชว์อะไร
+
+    # เปลี่ยนจาก JsonResponse เป็น render
+    return render(request, 'myapp/search_results.html', {
+        'results': results,
+        'query': query_text
+    })
